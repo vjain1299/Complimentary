@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/login.dart';
+import 'package:complimentary/new_compliment_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +60,8 @@ class UserInfoScreen extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 25,
                           color: Colors.deepPurple,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold
+                      ),
                     ),
                     SizedBox(height: 20),
                     Text(
@@ -77,7 +79,30 @@ class UserInfoScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 40),
-                    (snapshot.data['id'] != user.uid)? Container(width: 0, height: 0) :
+                    (snapshot.data['id'] != user.uid)?
+                    RaisedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return NewComplimentScreen(Firestore.instance.collection('users').document(snapshot.data['id']));
+                              },
+                            )
+                        );
+                      },
+                      color: Colors.deepPurple,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Send Compliment',
+                          style: TextStyle(fontSize: 25, color: Colors.white),
+                        ),
+                      ),
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(40)),
+                    )
+                        :
                     RaisedButton(
                       onPressed: () {
                         signOutGoogle();

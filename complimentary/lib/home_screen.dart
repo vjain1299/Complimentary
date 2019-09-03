@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:complimentary/all_users_screen.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +26,7 @@ class MyStreamState extends State<MyStream> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: _makeDrawer(),
       appBar: AppBar(title: Text('Your Stream')
           //Add in side menu here
           ),
@@ -133,5 +135,117 @@ class MyStreamState extends State<MyStream> {
                     ),
                   )
                 ]))));
+  }
+  Drawer _makeDrawer() {
+    return Drawer(
+      child: ListView(
+        children: [
+          DrawerHeader(
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (context) {
+                              return UserInfoScreen(Firestore.instance.collection('users').document(user.uid));
+                            },
+                        )
+                    );
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(user.photoUrl),
+                    backgroundColor: Colors.transparent,
+                    radius: 40,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return UserInfoScreen(Firestore.instance.collection('users').document(user.uid));
+                          },
+                        )
+                    );
+                  },
+                  child: Text(
+                      user.displayName,
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w300,
+                      )
+                  ),
+                ),
+              ]
+            ),
+            decoration: BoxDecoration(
+              color: Colors.blue
+            ),
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.home,
+              color: Colors.blue,
+              size: 30,
+            ),
+            title: Text(
+                'Home',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(
+              Icons.people,
+              color: Colors.blue,
+              size: 30,
+            ),
+            title: Text(
+              'Friends',
+              style: TextStyle(
+                fontWeight: FontWeight.w300,
+                fontSize: 18,
+              ),
+            ),
+            onTap: () {
+              Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) {
+                        return AllUsersScreen();
+                      }));
+            }
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(
+              Icons.settings,
+              color: Colors.blue,
+              size: 30,
+            ),
+            title: Text(
+              'Settings',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            onTap: () {
+              //TODO: Fill in settings screen later
+            },
+          )
+        ]
+      )
+    );
   }
 }
