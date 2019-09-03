@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/bulid_users_screen.dart';
+import 'package:complimentary/user_info_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -16,10 +17,10 @@ class AllUsersScreen extends StatelessWidget{
         ),
       ),
       body:
-      UserListBuilder(Firestore.instance.collection('users'), onTouched),
+      UserListBuilder(Firestore.instance.collection('users').getDocuments().asStream(), onTouched),
     );
   }
-  void onTouched() {
+  void onTouched(DocumentSnapshot docSnap, BuildContext context) {
     print('tapped');
   }
 }

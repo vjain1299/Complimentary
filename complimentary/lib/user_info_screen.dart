@@ -16,6 +16,7 @@ class UserInfoScreen extends StatelessWidget {
       stream: _user.get().asStream(),
       builder: (context, snapshot) {
         if(snapshot.hasData) {
+          List friends = snapshot.data['friends']?? List();
           return Scaffold(
             appBar: AppBar(
                 automaticallyImplyLeading: true,
@@ -79,7 +80,7 @@ class UserInfoScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 40),
-                    (snapshot.data['id'] != user.uid)?
+                    (snapshot.data['id'] != user.uid)? (friends.contains(Firestore.instance.collection('users').document(user.uid)))?
                     RaisedButton(
                       onPressed: () {
                         Navigator.of(context).push(
@@ -95,6 +96,25 @@ class UserInfoScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
                           'Send Compliment',
+                          style: TextStyle(fontSize: 25, color: Colors.white),
+                        ),
+                      ),
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(40)),
+                    ) :
+                    RaisedButton(
+                      onPressed: () {
+                        List newRequests = [];
+                        newRequests.addAll(snapshot.data['requests'] ?? List());
+                        newRequests.add(Firestore.instance.collection('users').document(user.uid));
+                        Firestore.instance.collection('users').document(snapshot.data['id']).setData({ 'requests' : newRequests}, merge: true);
+                      },
+                      color: Colors.deepPurple,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Add Friend',
                           style: TextStyle(fontSize: 25, color: Colors.white),
                         ),
                       ),

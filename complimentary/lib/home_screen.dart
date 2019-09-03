@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/all_users_screen.dart';
+import 'package:complimentary/friend_request_screen.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:flutter/cupertino.dart';
@@ -225,6 +226,30 @@ class MyStreamState extends State<MyStream> {
                         return AllUsersScreen();
                       }));
             }
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(
+              Icons.people_outline,
+              color: Colors.blue,
+              size: 30,
+            ),
+            title: Text(
+              'Requests',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    return FriendRequestsScreen();
+                  }
+                )
+              );
+            },
           ),
           Divider(),
           ListTile(

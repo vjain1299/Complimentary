@@ -26,7 +26,8 @@ class NewComplimentScreen extends StatelessWidget {
             'user': Firestore.instance.collection('users').document(user.uid),
             'text': compliment,
             'imageUrl' : user.photoUrl,
-            'name' : user.displayName
+            'name' : user.displayName,
+            'createdAt' : docRef.documentID
           });
           Navigator.pop(context, false);
         },
