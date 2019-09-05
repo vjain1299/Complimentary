@@ -4,6 +4,7 @@ import 'package:complimentary/new_compliment_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class UserInfoScreen extends StatelessWidget {
   DocumentReference _user;
@@ -17,6 +18,7 @@ class UserInfoScreen extends StatelessWidget {
       builder: (context, snapshot) {
         if(snapshot.hasData) {
           List friends = snapshot.data['friends']?? List();
+          bool isUserRequested = List.castFrom(snapshot.data['requests']??List()).contains(Firestore.instance.collection('users').document(user.uid));
           return Scaffold(
             appBar: AppBar(
                 automaticallyImplyLeading: true,
@@ -75,7 +77,7 @@ class UserInfoScreen extends StatelessWidget {
                     Text(
                       snapshot.data['email'],
                       style: TextStyle(
-                          fontSize: 25,
+                          fontSize: 18,
                           color: Colors.deepPurple,
                           fontWeight: FontWeight.bold),
                     ),
@@ -105,20 +107,32 @@ class UserInfoScreen extends StatelessWidget {
                     ) :
                     RaisedButton(
                       onPressed: () {
+                        if(isUserRequested) {
+                          SnackBar(
+                            content: Text(
+                                "You've already sent a request to this user",
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                            backgroundColor: Colors.blue,
+                          );
+                          return;
+                        }
                         List newRequests = [];
                         newRequests.addAll(snapshot.data['requests'] ?? List());
                         newRequests.add(Firestore.instance.collection('users').document(user.uid));
                         Firestore.instance.collection('users').document(snapshot.data['id']).setData({ 'requests' : newRequests}, merge: true);
                       },
-                      color: Colors.deepPurple,
+                      color: isUserRequested? Colors.grey : Colors.deepPurple,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
-                          'Add Friend',
+                          isUserRequested? 'Request Sent' : 'Add Friend',
                           style: TextStyle(fontSize: 25, color: Colors.white),
                         ),
                       ),
-                      elevation: 5,
+                      elevation: isUserRequested? 0 : 5,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(40)),
                     )

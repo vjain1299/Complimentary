@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/all_users_screen.dart';
 import 'package:complimentary/friend_request_screen.dart';
+import 'package:complimentary/friend_screen.dart';
+import 'package:complimentary/settings_screen.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:complimentary/sign_in.dart';
+import 'package:complimentary/your_journal_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -56,11 +59,10 @@ class MyStreamState extends State<MyStream> {
 
   Widget _buildListFromStream(QuerySnapshot snapshot) {
     return ListView.builder(
-      padding: const EdgeInsets.all(4.0),
       itemCount: snapshot.documents.length * 2,
       itemBuilder: (context, i) {
         if (i.isOdd) {
-          return Divider();
+          return Divider(height: 2);
         } else {
           final index = i ~/ 2;
           return _buildRow(snapshot.documents[index]);
@@ -74,6 +76,7 @@ class MyStreamState extends State<MyStream> {
     final message = mappedData['text'];
     final imageUrl = mappedData['imageUrl'];
     final name = mappedData['name'];
+    var bookmark = Icons.bookmark_border;
     return Card(
         color: Colors.white,
         //clipBehavior: Clip.none,
@@ -129,12 +132,29 @@ class MyStreamState extends State<MyStream> {
                   Padding(
                     padding: EdgeInsets.all(8.0)
                   ),
-                  Text(
+                  ListTile(
+                    title: Text(
                       message,
-                    style: TextStyle(
-                      fontSize: 18
+                      style: TextStyle(
+                          fontSize: 18
+                      ),
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(
+                          (!(snap.data['isInJournal']??true))?
+                          Icons.bookmark_border :
+                          Icons.bookmark
+                      ),
+                      onPressed: () {
+                        if(!(snap.data['isInJournal']??true)) {
+                          Firestore.instance.collection('users').document(
+                              user.uid).collection('journal').add(snap.data);
+                          snap.reference.setData({'isInJournal' : true}, merge: true);
+                        }
+                      },
                     ),
                   )
+
                 ]))));
   }
   Drawer _makeDrawer() {
@@ -174,7 +194,7 @@ class MyStreamState extends State<MyStream> {
                     );
                   },
                   child: Text(
-                      user.displayName,
+                      name,
                       style: TextStyle(
                         fontSize: 24,
                         color: Colors.white,
@@ -223,7 +243,7 @@ class MyStreamState extends State<MyStream> {
               Navigator.of(context).push(
                   MaterialPageRoute(
                       builder: (context) {
-                        return AllUsersScreen();
+                        return FriendScreen();
                       }));
             }
           ),
@@ -254,6 +274,30 @@ class MyStreamState extends State<MyStream> {
           Divider(),
           ListTile(
             leading: Icon(
+              Icons.book,
+              color: Colors.blue,
+              size: 30,
+            ),
+            title: Text(
+              'Your Journal',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            onTap: () {
+              Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) {
+                        return JournalScreen();
+                      }
+                  )
+              );
+            },
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(
               Icons.settings,
               color: Colors.blue,
               size: 30,
@@ -266,9 +310,16 @@ class MyStreamState extends State<MyStream> {
               ),
             ),
             onTap: () {
-              //TODO: Fill in settings screen later
+              Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) {
+                        return SettingsScreen();
+                      }
+                  )
+              );
             },
-          )
+          ),
+          Divider(),
         ]
       )
     );

@@ -24,7 +24,7 @@ class UserListBuilder extends StatelessWidget {
               ListTile(
                 //onTap: Add friend activity thing,
                 subtitle: Text(
-                  'Add some friends!',
+                  'No Users Found',
                   style: TextStyle(
                     color: Colors.grey,
                     fontSize: 18,

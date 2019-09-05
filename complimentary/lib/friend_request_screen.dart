@@ -87,6 +87,10 @@ class FriendRequestsState extends State<StatefulWidget> {
                         onPressed: () {
                           requests.remove(docRef);
                           friends.add(docRef);
+                          List otherUsersFriends = [];
+                          otherUsersFriends.addAll(userDoc.data['friends']??List());
+                          otherUsersFriends.add(Firestore.instance.collection('users').document(user.uid));
+                          docRef.setData({ 'friends' : otherUsersFriends }, merge : true);
                           Firestore.instance
                               .collection('users')
                               .document(user.uid)
@@ -115,7 +119,7 @@ class FriendRequestsState extends State<StatefulWidget> {
                   ]),
                 ));
           } else {
-            return CircularProgressIndicator();
+            return LinearProgressIndicator();
           }
         });
   }

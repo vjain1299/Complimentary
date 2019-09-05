@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 FirebaseUser user;
+String name = user.displayName;
 final GoogleSignIn googleSignIn = GoogleSignIn();
 Future<String> signInWithGoogle() async {
   final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
@@ -30,7 +31,7 @@ Future<String> signInWithGoogle() async {
   if (documents.length == 0) {
     // Update data to server if new user
     Firestore.instance.collection('users').document(user.uid).setData({
-      'nickname': user.displayName,
+      'nickname': name,
       'photoUrl': user.photoUrl,
       'id': user.uid,
       'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
