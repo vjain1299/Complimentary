@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:complimentary/const.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
@@ -61,7 +62,27 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           Divider(),
-          //Put in other settings here
+          ListTile(
+            title: Text('Theme Color'),
+            trailing: Icon(
+              Icons.brightness_1,
+              color: themeColor,
+            ),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text('Choose a color:'),
+                    content: SingleChildScrollView(
+                      child:
+                    ),
+                  );
+                }
+              );
+            },
+          ),
+          Divider(),
         ],
       ),
     );

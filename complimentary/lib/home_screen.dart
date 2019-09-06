@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/all_users_screen.dart';
 import 'package:complimentary/archived_screen.dart';
+import 'package:complimentary/const.dart';
+import 'package:complimentary/const.dart' as Const;
 import 'package:complimentary/friend_request_screen.dart';
 import 'package:complimentary/friend_screen.dart';
 import 'package:complimentary/settings_screen.dart';
@@ -16,7 +18,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Stream",
-      theme: ThemeData(primaryColor: Colors.blue),
+      theme: ThemeData(primaryColor: Const.themeColor),
       home: MyStream(),
     );
   }
@@ -77,7 +79,7 @@ class MyStreamState extends State<MyStream> {
               Scaffold
                   .of(context)
                   .showSnackBar(
-                  SnackBar(content: Text("Compliment dismissed")));
+                  SnackBar(content: Text("Compliment archived.")));
             },
              child: _buildRow(snapshot.documents[index]),
           );
@@ -136,7 +138,7 @@ class MyStreamState extends State<MyStream> {
                         child: Text(
                         'Reply',
                         style: TextStyle(
-                            color: Colors.blue,
+                            color: Const.themeColor,
                             fontSize: 24
                         ),
                       )
@@ -155,7 +157,7 @@ class MyStreamState extends State<MyStream> {
                     ),
                     trailing: IconButton(
                       icon: Icon(
-                          (!(snap.data['isInJournal']??true))?
+                          (!(snap.data['isInJournal']??false))?
                           Icons.bookmark_border :
                           Icons.bookmark
                       ),
@@ -226,13 +228,13 @@ class MyStreamState extends State<MyStream> {
               ]
             ),
             decoration: BoxDecoration(
-              color: Colors.blue
+              color: Const.themeColor,
             ),
           ),
           ListTile(
             leading: Icon(
               Icons.home,
-              color: Colors.blue,
+              color: Const.themeColor,
               size: 30,
             ),
             title: Text(
@@ -250,7 +252,7 @@ class MyStreamState extends State<MyStream> {
           ListTile(
             leading: Icon(
               Icons.people,
-              color: Colors.blue,
+              color: Const.themeColor,
               size: 30,
             ),
             title: Text(
@@ -272,7 +274,7 @@ class MyStreamState extends State<MyStream> {
           ListTile(
             leading: Icon(
               Icons.people_outline,
-              color: Colors.blue,
+              color: Const.themeColor,
               size: 30,
             ),
             title: Text(
@@ -296,7 +298,7 @@ class MyStreamState extends State<MyStream> {
           ListTile(
             leading: Icon(
               Icons.book,
-              color: Colors.blue,
+              color: Const.themeColor,
               size: 30,
             ),
             title: Text(
@@ -320,7 +322,7 @@ class MyStreamState extends State<MyStream> {
           ListTile(
             leading: Icon(
               Icons.archive,
-              color: Colors.blue,
+              color: Const.themeColor,
               size: 30,
             ),
             title: Text(
@@ -344,7 +346,7 @@ class MyStreamState extends State<MyStream> {
           ListTile(
             leading: Icon(
               Icons.settings,
-              color: Colors.blue,
+              color: Const.themeColor,
               size: 30,
             ),
             title: Text(

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:complimentary/const.dart';
 import 'package:complimentary/login.dart';
 import 'package:complimentary/new_compliment_screen.dart';
 import 'package:complimentary/sign_in.dart';
@@ -115,7 +116,7 @@ class UserInfoScreen extends StatelessWidget {
                                 color: Colors.white,
                               ),
                             ),
-                            backgroundColor: Colors.blue,
+                            backgroundColor: themeColor,
                           );
                           return;
                         }

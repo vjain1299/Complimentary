@@ -78,7 +78,15 @@ class JournalScreenState extends State<JournalScreen> {
             itemBuilder: (context, i) {
               int index = i~/2;
               if(i.isOdd) return Divider(height: 2);
-              return _buildJournalItem(snapshot.data.documents[index]);
+              return Dismissible(
+                key: Key(snapshot.data.documents[index].documentID),
+                child: _buildJournalItem(snapshot.data.documents[index]),
+                onDismissed: (direction) {
+                  snapshot.data.documents[index].reference.setData({'isInJournal' : false}, merge: true);
+                  Firestore.instance.collection('users').document(user.uid).collection('journal').document(snapshot.data.documents[index].documentID).delete();
+                  setState(() {});
+                },
+              );
             },
             itemCount: snapshot.data.documents.length * 2,
           );

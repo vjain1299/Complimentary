@@ -57,7 +57,7 @@ class ArchivedScreenState extends State<ArchivedScreen> {
               Scaffold
                   .of(context)
                   .showSnackBar(
-                  SnackBar(content: Text("Compliment dismissed")));
+                  SnackBar(content: Text("Compliment unarchived.")));
             },
             child: _buildRow(snapshot.documents[index]),
           );
@@ -109,17 +109,38 @@ class ArchivedScreenState extends State<ArchivedScreen> {
                       ),
                     ),
                     Spacer(),
-                    GestureDetector(
-                        onTap: () {
-                          print('Pressed');
-                        },
-                        child: Text(
-                          'Reply',
-                          style: TextStyle(
-                              color: Colors.blue,
-                              fontSize: 24
-                          ),
-                        )
+                    IconButton(
+                      icon: Icon(
+                        Icons.delete_forever,
+                        color: Colors.blue,
+                      ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text("Confirm Delete"),
+                              content: Text("Are you sure you want to delete this compliment?"),
+                              actions: <Widget>[
+                                FlatButton(
+                                  child: Text('Yes'),
+                                  onPressed: () {
+                                    snap.reference.delete();
+                                    Navigator.of(context).pop(false);
+                                    setState(() {});
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text('No'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(false);
+                                  },
+                                )
+                              ],
+                            );
+                          }
+                        );
+                      },
                     )
                   ]
                   ),
