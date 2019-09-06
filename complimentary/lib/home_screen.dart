@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/all_users_screen.dart';
+import 'package:complimentary/archived_screen.dart';
 import 'package:complimentary/friend_request_screen.dart';
 import 'package:complimentary/friend_screen.dart';
 import 'package:complimentary/settings_screen.dart';
@@ -44,7 +45,7 @@ class MyStreamState extends State<MyStream> {
             .collection('users')
             .document(user.uid)
             .collection('stream')
-            .getDocuments()
+            .where('archived', isEqualTo: false).getDocuments()
             .asStream(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -65,7 +66,21 @@ class MyStreamState extends State<MyStream> {
           return Divider(height: 2);
         } else {
           final index = i ~/ 2;
-          return _buildRow(snapshot.documents[index]);
+          return Dismissible(
+            key: Key(snapshot.documents[index].documentID),
+            onDismissed: (direction) {
+              // Remove the item from the data source.
+              Firestore.instance.collection('users').document(user.uid).collection('stream').document(snapshot.documents[index].documentID).setData({'archived': true}, merge: true);
+              setState(() {
+                snapshot.documents.removeAt(index);
+              });
+              Scaffold
+                  .of(context)
+                  .showSnackBar(
+                  SnackBar(content: Text("Compliment dismissed")));
+            },
+             child: _buildRow(snapshot.documents[index]),
+          );
         }
       },
     );
@@ -76,7 +91,6 @@ class MyStreamState extends State<MyStream> {
     final message = mappedData['text'];
     final imageUrl = mappedData['imageUrl'];
     final name = mappedData['name'];
-    var bookmark = Icons.bookmark_border;
     return Card(
         color: Colors.white,
         //clipBehavior: Clip.none,
@@ -146,11 +160,18 @@ class MyStreamState extends State<MyStream> {
                           Icons.bookmark
                       ),
                       onPressed: () {
-                        if(!(snap.data['isInJournal']??true)) {
+                        if(!(snap.data['isInJournal']??false)) {
+                          Map data = snap.data;
+                          data['docRef'] = snap.reference;
                           Firestore.instance.collection('users').document(
-                              user.uid).collection('journal').add(snap.data);
+                              user.uid).collection('journal').document(snap.documentID).setData(data);
                           snap.reference.setData({'isInJournal' : true}, merge: true);
                         }
+                        else {
+                          snap.reference.setData({'isInJournal' : false}, merge: true);
+                          Firestore.instance.collection('users').document(user.uid).collection('journal').document(snap.documentID).delete();
+                        }
+                        setState(() {});
                       },
                     ),
                   )
@@ -290,6 +311,30 @@ class MyStreamState extends State<MyStream> {
                   MaterialPageRoute(
                       builder: (context) {
                         return JournalScreen();
+                      }
+                  )
+              );
+            },
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(
+              Icons.archive,
+              color: Colors.blue,
+              size: 30,
+            ),
+            title: Text(
+              'Archived',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            onTap: () {
+              Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) {
+                        return ArchivedScreen();
                       }
                   )
               );

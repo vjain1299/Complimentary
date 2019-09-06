@@ -25,6 +25,7 @@ class NewComplimentScreen extends StatelessWidget {
           docRef.setData({
             'user': Firestore.instance.collection('users').document(user.uid),
             'text': compliment,
+            'archived' : false,
             'imageUrl' : user.photoUrl,
             'name' : name,
             'createdAt' : docRef.documentID

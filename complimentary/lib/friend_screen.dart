@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/bulid_users_screen.dart';
+import 'package:complimentary/new_compliment_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -96,6 +97,21 @@ class FriendPageState extends State<FriendPage> with AutomaticKeepAliveClientMix
                 },
               ));
             },
+            trailing: IconButton(
+              icon: Icon(
+                Icons.send,
+                color: Colors.blue,
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return NewComplimentScreen(userDoc.data.reference);
+                    }
+                  )
+                );
+              },
+            ),
           );
         } else {
           return LinearProgressIndicator();
