@@ -51,10 +51,27 @@ class UserListState extends State<UserListBuilder> {
   }
   Widget _buildList(QuerySnapshot snapshot) {
     return ListView.builder(
-      itemCount: snapshot.documents.length * 2,
+      itemCount: snapshot.documents.length * 2 + 2,
       itemBuilder: (context, i) {
-        if(i.isOdd) return Divider();
-        int index = i~/2;
+        if(i == 0) {
+          return Divider(color: Colors.transparent,);
+        }
+        if(i == 1) {
+          return ListTile(
+            title: TextField(
+              decoration: InputDecoration.collapsed(
+                  hintText: 'Search',
+              ),
+              onChanged: (value) {
+                setState(() {
+                  docuStream = Firestore.instance.collection('users').orderBy('nickname').startAt([value]).endAt([value + '\uf8ff']).getDocuments().asStream();
+                });
+              },
+            ),
+          );
+        }
+        if(i.isEven) return Divider();
+        int index = (i-1)~/2 - 1;
         return _buildRow(snapshot.documents[index], context);
       },
     );

@@ -163,11 +163,11 @@ class MyStreamState extends State<MyStream> {
                       ),
                       onPressed: () {
                         if(!(snap.data['isInJournal']??false)) {
+                          snap.reference.setData({'isInJournal' : true}, merge: true);
                           Map data = snap.data;
                           data['docRef'] = snap.reference;
                           Firestore.instance.collection('users').document(
                               user.uid).collection('journal').document(snap.documentID).setData(data);
-                          snap.reference.setData({'isInJournal' : true}, merge: true);
                         }
                         else {
                           snap.reference.setData({'isInJournal' : false}, merge: true);

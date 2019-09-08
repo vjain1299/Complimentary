@@ -3,10 +3,18 @@ import 'package:complimentary/sign_in.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:complimentary/const.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return SettingsState();
+  }
+}
+class SettingsState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
+    Color tempColor = themeColor;
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
@@ -47,6 +55,7 @@ class SettingsScreen extends StatelessWidget {
                             Firestore.instance.collection('users').document(user.uid).setData({'nickname': temp}, merge : true);
                             name = temp;
                             Navigator.of(context).pop(false);
+                            setState(() {});
                           },
                         ),
                         FlatButton(
@@ -75,8 +84,35 @@ class SettingsScreen extends StatelessWidget {
                   return AlertDialog(
                     title: Text('Choose a color:'),
                     content: SingleChildScrollView(
-                      child:
+                      child: ColorPicker(
+                        pickerColor: tempColor,
+                        enableLabel: true,
+                        pickerAreaHeightPercent: 0.8,
+                        onColorChanged: (color) {
+                          tempColor = color;
+                        },
+                      )
                     ),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                      ),
+                      FlatButton(
+                        child: Text('Apply'),
+                        onPressed: () {
+                          themeColor = tempColor;
+                          Navigator.of(context).pop(false);
+                          Scaffold
+                              .of(context)
+                              .showSnackBar(
+                              SnackBar(content: Text("You must restart the app for changes to take effect.")));
+                          setState(() {});
+                        },
+                      )
+                    ],
                   );
                 }
               );

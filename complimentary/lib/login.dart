@@ -2,6 +2,8 @@ import 'package:complimentary/user_info_screen.dart';
 import 'package:complimentary/home_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:video_player/video_player.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -19,7 +21,11 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              FlutterLogo(size: 150),
+              Image.asset(
+                'assets/logoGifFast.gif',
+                height: 200,
+                gaplessPlayback: true,
+              ),
               SizedBox(height: 50),
               _signInButton(),
             ],
