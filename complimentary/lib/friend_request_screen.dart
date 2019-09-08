@@ -57,7 +57,7 @@ class FriendRequestsState extends State<StatefulWidget> {
     List requests = [];
     List friends = [];
     requests.addAll(docRefs);
-    requests.addAll(friendsRefs);
+    friends.addAll(friendsRefs);
     return StreamBuilder<DocumentSnapshot>(
         stream: docRef.get().asStream(),
         builder: (context, userDoc) {

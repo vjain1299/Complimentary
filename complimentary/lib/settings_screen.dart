@@ -12,6 +12,7 @@ class SettingsScreen extends StatefulWidget {
   }
 }
 class SettingsState extends State<SettingsScreen> {
+  var myName = name;
   @override
   Widget build(BuildContext context) {
     Color tempColor = themeColor;
@@ -31,31 +32,33 @@ class SettingsState extends State<SettingsScreen> {
           ListTile(
             title: Text('Display Name'),
             trailing: Text(
-                name,
+                myName,
               style: TextStyle(
                 color: Colors.grey
               ),
             ),
             onTap: () {
-              var temp = "";
                 showDialog(
                   context: context,
                   builder: (context){
                     return AlertDialog(
                       title: Text('Display Name'),
                       content: TextField(
+                        controller: TextEditingController(text: myName),
                         onChanged: (value) {
-                          temp = value;
+                          myName = value;
                         },
                       ),
                       actions: <Widget>[
                         FlatButton(
                           child: Text('Set'),
                           onPressed: () {
-                            Firestore.instance.collection('users').document(user.uid).setData({'nickname': temp}, merge : true);
-                            name = temp;
+                            Firestore.instance.collection('users').document(user.uid).setData({'nickname': myName}, merge : true);
+                            name = myName;
                             Navigator.of(context).pop(false);
-                            setState(() {});
+                            setState(() {
+                              myName = name;
+                            });
                           },
                         ),
                         FlatButton(

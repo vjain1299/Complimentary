@@ -89,7 +89,7 @@ class UserInfoScreen extends StatelessWidget {
                         Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) {
-                                return NewComplimentScreen(Firestore.instance.collection('users').document(snapshot.data['id']));
+                                return NewComplimentScreen(docuSnap: snapshot.data);
                               },
                             )
                         );

@@ -107,7 +107,7 @@ class FriendPageState extends State<FriendPage> with AutomaticKeepAliveClientMix
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) {
-                      return NewComplimentScreen(userDoc.data.reference);
+                      return NewComplimentScreen(docuSnap: userDoc.data);
                     }
                   )
                 );
