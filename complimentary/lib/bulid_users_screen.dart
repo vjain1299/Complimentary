@@ -64,7 +64,8 @@ class UserListState extends State<UserListBuilder> {
               ),
               onChanged: (value) {
                 setState(() {
-                  docuStream = Firestore.instance.collection('users').orderBy('nickname').startAt([value]).endAt([value + '\uf8ff']).getDocuments().asStream();
+                  if(value == "") docuStream = Firestore.instance.collection('users').getDocuments().asStream();
+                  else docuStream = Firestore.instance.collection('users').orderBy('name').startAt([value]).endAt([value + '\uf8ff']).getDocuments().asStream();
                 });
               },
             ),
@@ -77,15 +78,15 @@ class UserListState extends State<UserListBuilder> {
     );
   }
   Widget _buildRow(DocumentSnapshot userDoc, BuildContext context) {
-    List requests = userDoc.data['requests'];
+    List requests = userDoc.data['requests']??List();
     List friends = userDoc.data['friends']??List();
     var userRef = Firestore.instance.collection('users').document(user.uid);
     bool isAlreadyRequested = requests.contains(userRef) || friends.contains(userRef);
     return ListTile(
-      title: Text(userDoc.data['nickname']),
+      title: Text(userDoc.data['name']),
       leading: CircleAvatar(
         backgroundColor: Colors.transparent,
-        backgroundImage: NetworkImage(userDoc.data['photoUrl']),
+        backgroundImage: NetworkImage(userDoc.data['imageUrl']),
         radius: 20,
       ),
       trailing: isAlreadyRequested? Icon(Icons.check, color: Colors.green,) :
@@ -99,7 +100,9 @@ class UserListState extends State<UserListBuilder> {
           newData.addAll(requests);
           newData.add(Firestore.instance.collection('users').document(user.uid));
           userDoc.reference.setData({'requests': newData}, merge: true);
-          setState(() {});
+          setState(() {
+            isAlreadyRequested = true;
+          });
         },
       ),
       onTap: () {

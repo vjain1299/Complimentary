@@ -56,7 +56,7 @@ class FriendPageState extends State<FriendPage> with AutomaticKeepAliveClientMix
             .asStream(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return _buildList(snapshot.data['friends']);
+            return _buildList(snapshot.data['friends']??List());
           }
           return ListTile(
             subtitle: Text('There was a problem.'),
@@ -85,10 +85,10 @@ class FriendPageState extends State<FriendPage> with AutomaticKeepAliveClientMix
       builder: (context, userDoc) {
         if (userDoc.hasData) {
           return ListTile(
-            title: Text(userDoc.data['nickname']),
-            leading: CircleAvatar(
+            title: Text(userDoc.data['name']??'Error'),
+            leading: userDoc.data == null? null : CircleAvatar(
               backgroundColor: Colors.transparent,
-              backgroundImage: NetworkImage(userDoc.data['photoUrl']),
+              backgroundImage: NetworkImage(userDoc.data['imageUrl']),
               radius: 20,
             ),
             onTap: () {
@@ -115,7 +115,7 @@ class FriendPageState extends State<FriendPage> with AutomaticKeepAliveClientMix
             ),
           );
         } else {
-          return LinearProgressIndicator();
+          return Divider(color: Colors.white,);
         }
       },
     );

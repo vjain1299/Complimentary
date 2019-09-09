@@ -33,7 +33,7 @@ class FriendRequestsState extends State<StatefulWidget> {
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return _buildList(
-                  snapshot.data['requests'], snapshot.data['friends']);
+                  snapshot.data['requests']??List(), snapshot.data['friends']??List());
             } else {
               return LinearProgressIndicator();
             }

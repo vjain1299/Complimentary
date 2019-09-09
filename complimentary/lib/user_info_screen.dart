@@ -46,7 +46,7 @@ class UserInfoScreen extends StatelessWidget {
                   children: <Widget>[
                     CircleAvatar(
                       backgroundImage: NetworkImage(
-                        snapshot.data['photoUrl'],
+                        snapshot.data['imageUrl'],
                       ),
                       radius: 60,
                       backgroundColor: Colors.transparent,
@@ -60,7 +60,7 @@ class UserInfoScreen extends StatelessWidget {
                           color: Colors.black54),
                     ),
                     Text(
-                      snapshot.data['nickname'],
+                      snapshot.data['name'],
                       style: TextStyle(
                           fontSize: 25,
                           color: Colors.deepPurple,

@@ -18,8 +18,8 @@ class NewComplimentScreen extends StatelessWidget {
     var compliment = "";
     var prefixList = ['My favorite thing about you is ', "You've always been talented at", ''];
     var prefix = "";
-    var userName = docSnap != null? docSnap.data['nickname'] : 'Yourself';
-    var photoUrl = docSnap != null? docSnap.data['photoUrl'] : user.photoUrl;
+    var userName = docSnap != null? docSnap.data['name'] : 'Yourself';
+    var imageUrl = docSnap != null? docSnap.data['imageUrl'] : user.photoUrl;
     return Scaffold(
         appBar: AppBar(
             title: Text('New Compliment'),
@@ -53,7 +53,7 @@ class NewComplimentScreen extends StatelessWidget {
             contentPadding: EdgeInsets.all(16.0),
             title: Text('To: $userName'),
             leading: CircleAvatar(
-              backgroundImage: NetworkImage(photoUrl),
+              backgroundImage: NetworkImage(imageUrl),
               backgroundColor: Colors.transparent,
               radius: 30,
             ),

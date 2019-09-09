@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 FirebaseUser user;
@@ -31,23 +30,14 @@ Future<String> signInWithGoogle() async {
   if (documents.length == 0) {
     // Update data to server if new user
     Firestore.instance.collection('users').document(user.uid).setData({
-      'nickname': name,
-      'photoUrl': user.photoUrl,
+      'name': name,
+      'imageUrl': user.photoUrl,
       'id': user.uid,
       'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
       'friends' : List(),
       'requests' : List(),
       'email' : user.email,
     });
-    // Write data to local
-    addToPrefs('id', currentUser.uid);
-    addToPrefs('nickname', currentUser.displayName);
-    addToPrefs('photoUrl', currentUser.photoUrl);
-  } else {
-    // Write data to local
-    addToPrefs('id', documents[0]['id']);
-    addToPrefs('nickname', documents[0]['nickname']);
-    addToPrefs('photoUrl', documents[0]['photoUrl']);
   }
   return 'signInWithGoogle succeeded: $user';
 }
@@ -56,9 +46,5 @@ void signOutGoogle() async{
   await googleSignIn.signOut();
 
   print("User Sign Out");
-}
-addToPrefs(String key, String value) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString(key, value);
 }
 
