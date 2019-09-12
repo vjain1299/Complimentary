@@ -22,6 +22,7 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the Cupertino Icons class for iOS style icons.
+  firebase_messaging:
   flutter_colorpicker:
   video_player:
   cupertino_icons:
@@ -39,6 +40,8 @@ dependencies:
     git: git://github.com/yangyxd/flutter_picker.git
   flutter_local_notifications:
   photo_view:
+  autocomplete_textfield:
+  cloud_functions:
 
 dev_dependencies:
   flutter_test:

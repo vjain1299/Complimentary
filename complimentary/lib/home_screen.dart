@@ -1,9 +1,8 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:complimentary/all_users_screen.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:complimentary/archived_screen.dart';
-import 'package:complimentary/const.dart';
 import 'package:complimentary/const.dart' as Const;
 import 'package:complimentary/friend_request_screen.dart';
 import 'package:complimentary/friend_screen.dart';
@@ -15,7 +14,8 @@ import 'package:complimentary/your_journal_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
+import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -33,28 +33,66 @@ class MyStream extends StatefulWidget {
 }
 
 class MyStreamState extends State<MyStream> {
+  FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  @override void initState() {
+    super.initState();
+     firebaseCloudMessaging_Listeners();
+  }
+  void firebaseCloudMessaging_Listeners() {
+    if(Platform.isIOS) iOS_Permission();
+    _firebaseMessaging.getToken().then((token) {
+      print(token);
+      Firestore.instance.collection('users').document(user.uid).setData({ 'notificationID' :  token }, merge: true);
+    });
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print('on message $message');
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print('on resume $message');
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print('on launch $message');
+      }
+    );
+  }
+  void iOS_Permission() {
+    _firebaseMessaging.requestNotificationPermissions(
+      IosNotificationSettings(sound: true, badge: true, alert: true)
+    );
+    _firebaseMessaging.onIosSettingsRegistered
+      .listen((IosNotificationSettings settings) {
+        print('Settings Registered: $settings');
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: _makeDrawer(),
-      appBar: AppBar(title: Text('Your Stream'),
-        actions: <Widget>[
+    return RefreshIndicator(
+      onRefresh: refresh,
+      child: Scaffold(
+        drawer: _makeDrawer(),
+        appBar: AppBar(title: Text('Your Stream'),
+          actions: <Widget>[
             IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) {
-                          return FriendScreen();
-                        }
-                    )
-                );
-              }
+                icon: Icon(Icons.add),
+                onPressed: () {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (context) {
+                            return NewComplimentScreen();
+                          }
+                      )
+                  );
+                }
             )
-        ],
-          ),
-      body: _buildStream(),
+          ],
+        ),
+        body: _buildStream(),
+      ),
     );
+  }
+  Future<void> refresh() async {
+    setState(() {});
   }
 
   Widget _buildStream() {
@@ -64,6 +102,7 @@ class MyStreamState extends State<MyStream> {
             .document(user.uid)
             .collection('stream')
             .where('archived', isEqualTo: false)
+            .orderBy('__name__', descending: true)
             .getDocuments()
             .asStream(),
         builder: (context, snapshot) {
@@ -89,7 +128,7 @@ class MyStreamState extends State<MyStream> {
           onTap: () {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) {
               return NewComplimentScreen(
-                docuRef: Firestore.instance.collection('users').document(user.uid),
+                docRef: Firestore.instance.collection('users').document(user.uid),
               );
           }));
         },
@@ -129,7 +168,7 @@ class MyStreamState extends State<MyStream> {
     final mappedData = snap.data;
     final message = mappedData['text'];
     final imageUrl = mappedData['imageUrl'];
-    final name = mappedData['name'];
+    final userName = mappedData['name'];
     return Card(
         color: Colors.white,
         //clipBehavior: Clip.none,
@@ -158,16 +197,20 @@ class MyStreamState extends State<MyStream> {
                         )),
                     Padding(padding: EdgeInsets.all(8.0)),
                     Text(
-                      name,
+                      userName,
                       style: TextStyle(fontSize: 24),
                     ),
                     Spacer(),
                     GestureDetector(
                         onTap: () {
-                          print('Pressed');
+                          CloudFunctions().getHttpsCallable(functionName: 'sayThanks').call([{
+                            'name' : name,
+                            'pushID' : mappedData['notificationID'],
+                            'imageUrl' : user.photoUrl,
+                          }, context]);
                         },
                         child: Text(
-                          'Reply',
+                          'Say Thanks!',
                           style:
                               TextStyle(color: Const.themeColor, fontSize: 24),
                         ))

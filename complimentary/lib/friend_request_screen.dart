@@ -63,10 +63,10 @@ class FriendRequestsState extends State<StatefulWidget> {
         builder: (context, userDoc) {
           if (userDoc.hasData) {
             return ListTile(
-                title: Text(userDoc.data['nickname']),
+                title: Text(userDoc.data['name']),
                 leading: CircleAvatar(
                   backgroundColor: Colors.transparent,
-                  backgroundImage: NetworkImage(userDoc.data['photoUrl']),
+                  backgroundImage: NetworkImage(userDoc.data['imageUrl']),
                   radius: 20,
                 ),
                 onTap: () {
