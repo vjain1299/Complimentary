@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -34,63 +36,63 @@ class MyStream extends StatefulWidget {
 
 class MyStreamState extends State<MyStream> {
   FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
-  @override void initState() {
+  @override
+  void initState() {
     super.initState();
-     firebaseCloudMessaging_Listeners();
+    firebaseCloudMessaging_Listeners();
   }
+
   void firebaseCloudMessaging_Listeners() {
-    if(Platform.isIOS) iOS_Permission();
+    if (Platform.isIOS) iOS_Permission();
     _firebaseMessaging.getToken().then((token) {
       print(token);
-      Firestore.instance.collection('users').document(user.uid).setData({ 'notificationID' :  token }, merge: true);
+      Firestore.instance
+          .collection('users')
+          .document(user.uid)
+          .setData({'notificationID': token}, merge: true);
     });
     _firebaseMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        print('on message $message');
-      },
-      onResume: (Map<String, dynamic> message) async {
-        print('on resume $message');
-      },
-      onLaunch: (Map<String, dynamic> message) async {
-        print('on launch $message');
-      }
-    );
-  }
-  void iOS_Permission() {
-    _firebaseMessaging.requestNotificationPermissions(
-      IosNotificationSettings(sound: true, badge: true, alert: true)
-    );
-    _firebaseMessaging.onIosSettingsRegistered
-      .listen((IosNotificationSettings settings) {
-        print('Settings Registered: $settings');
+        onMessage: (Map<String, dynamic> message) async {
+      print('on message $message');
+    }, onResume: (Map<String, dynamic> message) async {
+      print('on resume $message');
+    }, onLaunch: (Map<String, dynamic> message) async {
+      print('on launch $message');
     });
   }
+
+  void iOS_Permission() {
+    _firebaseMessaging.requestNotificationPermissions(
+        IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.onIosSettingsRegistered
+        .listen((IosNotificationSettings settings) {
+      print('Settings Registered: $settings');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: refresh,
       child: Scaffold(
         drawer: _makeDrawer(),
-        appBar: AppBar(title: Text('Your Stream'),
-          actions: <Widget>[
-            IconButton(
-                icon: Icon(Icons.add),
-                onPressed: () {
-                  Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (context) {
-                            return NewComplimentScreen();
-                          }
-                      )
-                  );
-                }
-            )
-          ],
+        appBar: AppBar(
+          title: Text('Your Stream'),
+          actions: <Widget>[],
         ),
         body: _buildStream(),
+        floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                return NewComplimentScreen();
+              }));
+            },
+        ),
       ),
     );
   }
+
   Future<void> refresh() async {
     setState(() {});
   }
@@ -120,16 +122,16 @@ class MyStreamState extends State<MyStream> {
     if (snapshot.documents.length == 0) {
       return Center(
           child: ListTile(
-            title: Text(
-              'No new compliments right now...\nTry Complimenting Yourself!',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.blue),
-            ),
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-              return NewComplimentScreen(
-                docRef: Firestore.instance.collection('users').document(user.uid),
-              );
+        title: Text(
+          'No new compliments right now...\nTry Complimenting Yourself!',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.blue),
+        ),
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+            return NewComplimentScreen(
+              docRef: Firestore.instance.collection('users').document(user.uid),
+            );
           }));
         },
       ));
@@ -203,16 +205,22 @@ class MyStreamState extends State<MyStream> {
                     Spacer(),
                     GestureDetector(
                         onTap: () {
-                          CloudFunctions().getHttpsCallable(functionName: 'sayThanks').call([{
-                            'name' : name,
-                            'pushID' : mappedData['notificationID'],
-                            'imageUrl' : user.photoUrl,
-                          }, context]);
+
+                          CloudFunctions()
+                              .getHttpsCallable(functionName: 'sayThanks')
+                              .call([
+                            jsonEncode({
+                              'name': name,
+                              'pushID': mappedData['notificationID'],
+                              'imageUrl': user.photoUrl,
+                            }),
+                            context
+                          ]);
                         },
                         child: Text(
                           'Say Thanks!',
                           style:
-                              TextStyle(color: Const.themeColor, fontSize: 24),
+                              TextStyle(color: Const.themeColor, fontSize: 18),
                         ))
                   ]),
                   Padding(padding: EdgeInsets.all(8.0)),
