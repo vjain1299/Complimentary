@@ -42,7 +42,12 @@ dependencies:
   photo_view:
   autocomplete_textfield:
   cloud_functions:
+  flutter_launcher_icons:
 
+flutter_icons:
+  image_path: "assets/closeGap.png"
+  android: true
+  ios: true
 dev_dependencies:
   flutter_test:
     sdk: flutter
