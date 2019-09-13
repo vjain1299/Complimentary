@@ -3,10 +3,12 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_functions/cloud_functions.dart' as prefix0;
 import 'package:complimentary/archived_screen.dart';
 import 'package:complimentary/const.dart' as Const;
 import 'package:complimentary/friend_request_screen.dart';
 import 'package:complimentary/friend_screen.dart';
+import 'package:complimentary/friend_selector.dart';
 import 'package:complimentary/new_compliment_screen.dart';
 import 'package:complimentary/settings_screen.dart';
 import 'package:complimentary/user_info_screen.dart';
@@ -78,7 +80,20 @@ class MyStreamState extends State<MyStream> {
         drawer: _makeDrawer(),
         appBar: AppBar(
           title: Text('Your Stream'),
-          actions: <Widget>[],
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(
+                Icons.lightbulb_outline
+              ),
+              onPressed: () {
+                showDialog(context: context,
+                  builder: (context) {
+                    return getDailyObjectives();
+                  },
+                );
+              },
+            )
+          ],
         ),
         body: _buildStream(),
         floatingActionButton: FloatingActionButton(
@@ -204,11 +219,9 @@ class MyStreamState extends State<MyStream> {
                     ),
                     Spacer(),
                     GestureDetector(
-                        onTap: () {
-
-                          CloudFunctions()
-                              .getHttpsCallable(functionName: 'sayThanks')
-                              .call([
+                        onTap: () async {
+                          HttpsCallable sayThanks = CloudFunctions().getHttpsCallable(functionName: 'sayThanks');
+                          await sayThanks.call([
                             jsonEncode({
                               'name': name,
                               'pushID': mappedData['notificationID'],
@@ -426,5 +439,193 @@ class MyStreamState extends State<MyStream> {
       ),
       Divider(),
     ]));
+  }
+  AlertDialog getDailyObjectives() {
+    return AlertDialog(
+        title: Text('Ideas'),
+        content: Container(
+          width: double.maxFinite,
+          child: ListView(
+            children: <Widget>[
+              StreamBuilder<DocumentSnapshot>(
+                stream: Firestore.instance.collection('users').document(user.uid).get().asStream(),
+                builder: (context, userData) {
+                  if(userData.hasData) {
+                    List friends = userData.data.data['friends'];
+                    friends.shuffle();
+                    DocumentReference chosenFriend = friends.first;
+                    return StreamBuilder<DocumentSnapshot>(
+                      stream: chosenFriend.get().asStream(),
+                      builder: (context, snapshot) {
+                        return ListTile(
+                          trailing: Icon(
+                            Icons.arrow_forward,
+                            color: Const.themeColor,
+                          ),
+                          title: Text('Send a compliment to:\n${snapshot.hasData? snapshot.data.data['name']: 'someone'}!'),
+                          onTap: () {
+                            Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (context) {
+                                      return NewComplimentScreen(docSnap: snapshot.hasData? snapshot.data : null);
+                                    }
+                                )
+                            );
+                          },
+                        );
+                      },
+                    );
+                  }
+                  else {
+                    return Divider(height: 0, color: Colors.transparent,);
+                  }
+                },
+              ),
+              Divider(),
+              StreamBuilder<DocumentSnapshot>(
+                stream: Firestore.instance.collection('prompts').document('selfPrompts').get().asStream(),
+                builder: (context, snapshot) {
+                  if(snapshot.hasData) {
+                    List promptList = snapshot.data.data['promptList'];
+                    promptList.shuffle();
+                    return ListTile(
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Const.themeColor,
+                      ),
+                      title: Text(promptList.first),
+                      onTap: () {
+                        showDialog(context: context,
+                          builder: (context) {
+                            String temp = "";
+                            return AlertDialog(
+                              title: Text('New Journal Entry'),
+                              content: Column(
+                                children: <Widget>[
+                                  Text(promptList.first),
+                                  Divider(),
+                                  TextField(
+                                    decoration: InputDecoration.collapsed(hintText: 'Respond to the prompt here'),
+                                    maxLines: null,
+                                    keyboardType: TextInputType.multiline,
+                                    onChanged: (value) {
+                                      temp = value;
+                                    },
+                                  )
+                                ],
+                              ),
+                              actions: <Widget>[
+                                FlatButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(false);
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text('Submit'),
+                                  onPressed: () {
+                                    var docuRef = Firestore.instance.collection('users').document(user.uid).collection('journal').document(DateTime.now().millisecondsSinceEpoch.toString());
+                                    docuRef.setData({ 'text' : temp });
+                                    Navigator.of(context).pop(true);
+                                  },
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    );
+                  }
+                  else {
+                    return Divider(height: 0, color: Colors.transparent,);
+                  }
+                },
+              ),
+              Divider(),
+              StreamBuilder<DocumentSnapshot>(
+                stream: Firestore.instance.collection('prompts').document('userPrompts').get().asStream(),
+                builder: (context, snapshot) {
+                  if(snapshot.hasData) {
+                    List promptList = snapshot.data.data['promptList'];
+                    promptList.shuffle();
+                    return ListTile(
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Const.themeColor,
+                      ),
+                      title: Text(promptList.first),
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              String temp = "";
+                              return AlertDialog(
+                                title: Text('New Compliment'),
+                                content: Column(
+                                  children: <Widget>[
+                                    Text(promptList.first),
+                                    Divider(),
+                                    TextField(
+                                      decoration: InputDecoration.collapsed(hintText: 'Type here'),
+                                      keyboardType: TextInputType.multiline,
+                                      textCapitalization: TextCapitalization.sentences,
+                                      maxLines: null,
+                                      onChanged: (value) {
+                                        temp = value;
+                                      },
+                                    )
+                                  ],
+                                ),
+                                actions: <Widget>[
+                                  FlatButton(
+                                    child: Text('Cancel'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  FlatButton(
+                                    child: Text('Choose Recipient'),
+                                    onPressed: () async {
+                                      DocumentReference ref = await Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) {
+                                                return FriendSelector();
+                                              }
+                                          )
+                                      );
+                                      if(ref != null) {
+                                        ref.collection('stream').document(
+                                            DateTime
+                                                .now()
+                                                .millisecondsSinceEpoch
+                                                .toString()).setData(
+                                            {
+                                              'imageUrl': user.photoUrl,
+                                              'name': temp,
+                                              'user': Firestore.instance
+                                                  .collection('users').document(
+                                                  user.uid),
+                                              'name': name,
+                                            }
+                                        );
+                                      }
+                                      Navigator.of(context).pop();
+                                    },
+                                  )
+                                ],
+                              );
+                            });
+                      },
+                    );
+                  }
+                  else {
+                    return Divider(height: 0, color: Colors.transparent);
+                  }
+                },
+              )
+            ],
+          ),
+        )
+    );
   }
 }

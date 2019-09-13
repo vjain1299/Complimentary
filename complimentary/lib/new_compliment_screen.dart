@@ -76,7 +76,7 @@ class NewComplimentState extends State<NewComplimentScreen> {
                 'name': name,
                 'createdAt': docRef.documentID
               });
-              Navigator.pop(context, false);
+              Navigator.pop(context, true);
             },
             backgroundColor: Colors.blue,
             child: Icon(

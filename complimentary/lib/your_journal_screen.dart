@@ -42,6 +42,8 @@ class JournalScreenState extends State<JournalScreen> {
                       onChanged: (value) {
                         temp = value;
                       },
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
                     ),
                     actions: <Widget>[
                       FlatButton(
