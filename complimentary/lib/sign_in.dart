@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:complimentary/const.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -38,6 +40,10 @@ Future<String> signInWithGoogle() async {
       'requests' : List(),
       'email' : user.email,
     });
+  }
+  else {
+    name = documents[0].data['name']??user.displayName;
+    themeColor = Color(documents[0].data['preferredColor'])??themeColor;
   }
   return 'signInWithGoogle succeeded: $user';
 }

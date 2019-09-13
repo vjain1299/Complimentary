@@ -76,6 +76,7 @@ class NewComplimentState extends State<NewComplimentScreen> {
                 'name': name,
                 'createdAt': docRef.documentID
               });
+              Fluttertoast.showToast(msg: 'Your compliment has been sent!');
               Navigator.pop(context, true);
             },
             backgroundColor: Colors.blue,

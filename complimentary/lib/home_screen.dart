@@ -6,6 +6,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_functions/cloud_functions.dart' as prefix0;
 import 'package:complimentary/archived_screen.dart';
 import 'package:complimentary/const.dart' as Const;
+import 'package:complimentary/endless_suggestions_screen.dart';
 import 'package:complimentary/friend_request_screen.dart';
 import 'package:complimentary/friend_screen.dart';
 import 'package:complimentary/friend_selector.dart';
@@ -15,6 +16,7 @@ import 'package:complimentary/user_info_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:complimentary/your_journal_screen.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:io';
@@ -88,7 +90,7 @@ class MyStreamState extends State<MyStream> {
               onPressed: () {
                 showDialog(context: context,
                   builder: (context) {
-                    return getDailyObjectives();
+                    return getDailyObjectives(context);
                   },
                 );
               },
@@ -215,7 +217,7 @@ class MyStreamState extends State<MyStream> {
                     Padding(padding: EdgeInsets.all(8.0)),
                     Text(
                       userName,
-                      style: TextStyle(fontSize: 24),
+                      style: TextStyle(fontSize: min(240/userName.length, 24)),
                     ),
                     Spacer(),
                     GestureDetector(
@@ -440,12 +442,28 @@ class MyStreamState extends State<MyStream> {
       Divider(),
     ]));
   }
-  AlertDialog getDailyObjectives() {
+  AlertDialog getDailyObjectives(BuildContext context) {
     return AlertDialog(
+      actions: <Widget>[
+        FlatButton(
+          child: Text('See more'),
+          onPressed: () async {
+            Navigator.of(context).pop();
+            Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (context) {
+                      return EndlessSuggestions();
+                    }
+                )
+            );
+          }
+        )
+      ],
         title: Text('Ideas'),
         content: Container(
           width: double.maxFinite,
           child: ListView(
+            shrinkWrap: true,
             children: <Widget>[
               StreamBuilder<DocumentSnapshot>(
                 stream: Firestore.instance.collection('users').document(user.uid).get().asStream(),
@@ -488,12 +506,13 @@ class MyStreamState extends State<MyStream> {
                   if(snapshot.hasData) {
                     List promptList = snapshot.data.data['promptList'];
                     promptList.shuffle();
+                    String prompt = promptList.first;
                     return ListTile(
                       trailing: Icon(
                         Icons.arrow_forward,
                         color: Const.themeColor,
                       ),
-                      title: Text(promptList.first),
+                      title: Text(prompt),
                       onTap: () {
                         showDialog(context: context,
                           builder: (context) {
@@ -502,7 +521,7 @@ class MyStreamState extends State<MyStream> {
                               title: Text('New Journal Entry'),
                               content: Column(
                                 children: <Widget>[
-                                  Text(promptList.first),
+                                  Text(prompt),
                                   Divider(),
                                   TextField(
                                     decoration: InputDecoration.collapsed(hintText: 'Respond to the prompt here'),
@@ -548,12 +567,13 @@ class MyStreamState extends State<MyStream> {
                   if(snapshot.hasData) {
                     List promptList = snapshot.data.data['promptList'];
                     promptList.shuffle();
+                    String prompt = promptList.first;
                     return ListTile(
                       trailing: Icon(
                         Icons.arrow_forward,
                         color: Const.themeColor,
                       ),
-                      title: Text(promptList.first),
+                      title: Text(prompt),
                       onTap: () {
                         showDialog(
                             context: context,
@@ -563,7 +583,7 @@ class MyStreamState extends State<MyStream> {
                                 title: Text('New Compliment'),
                                 content: Column(
                                   children: <Widget>[
-                                    Text(promptList.first),
+                                    Text(prompt),
                                     Divider(),
                                     TextField(
                                       decoration: InputDecoration.collapsed(hintText: 'Type here'),
@@ -586,28 +606,30 @@ class MyStreamState extends State<MyStream> {
                                   FlatButton(
                                     child: Text('Choose Recipient'),
                                     onPressed: () async {
-                                      DocumentReference ref = await Navigator.of(context).push(
+                                      DocumentSnapshot snap = await Navigator.of(context).push(
                                           MaterialPageRoute(
                                               builder: (context) {
                                                 return FriendSelector();
                                               }
                                           )
                                       );
-                                      if(ref != null) {
-                                        ref.collection('stream').document(
+                                      if(snap != null) {
+                                        snap.reference.collection('stream').document(
                                             DateTime
                                                 .now()
                                                 .millisecondsSinceEpoch
                                                 .toString()).setData(
                                             {
                                               'imageUrl': user.photoUrl,
-                                              'name': temp,
                                               'user': Firestore.instance
                                                   .collection('users').document(
                                                   user.uid),
                                               'name': name,
+                                              'text' : temp,
+                                              'archived' : false,
                                             }
                                         );
+                                        Fluttertoast.showToast(msg: 'Your compliment has been sent!');
                                       }
                                       Navigator.of(context).pop();
                                     },

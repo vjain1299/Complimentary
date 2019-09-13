@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:complimentary/const.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -13,6 +14,12 @@ class SettingsScreen extends StatefulWidget {
 }
 class SettingsState extends State<SettingsScreen> {
   var myName = name;
+  Color tempColor;
+  @override
+  void initState() {
+    tempColor = themeColor;
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     Color tempColor = themeColor;
@@ -53,7 +60,7 @@ class SettingsState extends State<SettingsScreen> {
                         FlatButton(
                           child: Text('Set'),
                           onPressed: () {
-                            Firestore.instance.collection('users').document(user.uid).setData({'nickname': myName}, merge : true);
+                            Firestore.instance.collection('users').document(user.uid).setData({'name': myName}, merge : true);
                             name = myName;
                             Navigator.of(context).pop(false);
                             setState(() {
@@ -107,12 +114,12 @@ class SettingsState extends State<SettingsScreen> {
                         child: Text('Apply'),
                         onPressed: () {
                           themeColor = tempColor;
+                          Firestore.instance.collection('users').document(user.uid).setData({'preferredColor' : themeColor.value}, merge: true);
                           Navigator.of(context).pop(false);
-                          Scaffold
-                              .of(context)
-                              .showSnackBar(
-                              SnackBar(content: Text("You must restart the app for changes to take effect.")));
-                          setState(() {});
+                          Fluttertoast.showToast(msg: "You must restart the app for changes to take effect.");
+                          setState(() {
+                            tempColor = themeColor;
+                          });
                         },
                       )
                     ],
