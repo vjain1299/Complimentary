@@ -43,7 +43,7 @@ Future<String> signInWithGoogle() async {
   }
   else {
     name = documents[0].data['name']??user.displayName;
-    themeColor = Color(documents[0].data['preferredColor'])??themeColor;
+    themeColor = Color(documents[0].data['preferredColor']??themeColor.value);
   }
   return 'signInWithGoogle succeeded: $user';
 }

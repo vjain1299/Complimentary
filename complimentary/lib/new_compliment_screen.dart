@@ -1,5 +1,8 @@
+import 'dart:collection';
+
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:complimentary/friend_screen.dart';
 import 'package:complimentary/friend_selector.dart';
 import 'package:complimentary/sign_in.dart';
@@ -67,17 +70,55 @@ class NewComplimentState extends State<NewComplimentScreen> {
                 );
                 return;
               }
-              docRef.setData({
-                'user':
-                Firestore.instance.collection('users').document(user.uid),
-                'text': prefix + " " + (prefix == ""? compliment : compliment.toString().substring(0,1).toLowerCase() + compliment.toString().substring(1)),
-                'archived': false,
-                'imageUrl': user.photoUrl,
-                'name': name,
-                'createdAt': docRef.documentID
-              });
-              Fluttertoast.showToast(msg: 'Your compliment has been sent!');
-              Navigator.pop(context, true);
+              var data = HashMap.of({'comment': prefix + " " + compliment});
+              HttpsCallable readComment = CloudFunctions().getHttpsCallable(functionName: 'readComment');
+              showDialog(context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: Container(
+                        width: double.maxFinite,
+                        child: FutureBuilder<HttpsCallableResult>(
+                            future: readComment.call(data),
+                            builder: (context, snapshot) {
+                              if(!snapshot.hasData) return CircularProgressIndicator();
+                              Map result = snapshot.data.data;
+                              var problems = [];
+                              for(int index = 0; index < result.length; index++) {
+                                if(result.values.toList()[index]['spanScores'][0]['score']['value'] > 0.70) {
+                                  problems.add(result.keys.toList()[index]);
+                                }
+                              }
+                              if(problems.length > 0) {
+                                return ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: problems.length,
+                                  itemBuilder: (context, i) {
+                                    return ListTile(
+                                      title: Text('Your comment has been flagged for ${problems[i]}.'),
+                                      subtitle: Text(['The compliment was not sent.',"Please consider what you're saying",'If you have nothing nice to say...', "Don't say anything at all", "Maybe you should reflect on what you said...", "Better luck next time"][i]),
+                                    );
+                                  },
+                                );
+                              }
+                              else {
+                                docRef.setData({
+                                  'user':
+                                  Firestore.instance.collection('users').document(user.uid),
+                                  'text': prefix + " " + (prefix == ""? compliment : compliment.toString().substring(0,1).toLowerCase() + compliment.toString().substring(1)),
+                                  'archived': false,
+                                  'imageUrl': user.photoUrl,
+                                  'name': name,
+                                  'createdAt': docRef.documentID
+                                });
+                                return Text('Your compliment has been sent');
+                              }
+                            }
+                        ),
+                      )
+                    );
+                  }
+              );
+              Navigator.pop(context, false);
             },
             backgroundColor: Colors.blue,
             child: Icon(

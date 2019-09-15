@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
 
@@ -27,7 +28,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Stream",
-      theme: ThemeData(primaryColor: Const.themeColor),
+      theme: ThemeData(primaryColor: Colors.blue),
       home: MyStream(),
     );
   }
@@ -221,16 +222,18 @@ class MyStreamState extends State<MyStream> {
                     ),
                     Spacer(),
                     GestureDetector(
-                        onTap: () async {
-                          HttpsCallable sayThanks = CloudFunctions().getHttpsCallable(functionName: 'sayThanks');
-                          await sayThanks.call([
-                            jsonEncode({
-                              'name': name,
-                              'pushID': mappedData['notificationID'],
-                              'imageUrl': user.photoUrl,
-                            }),
-                            context
-                          ]);
+                        onTap: () {
+                          mappedData['user'].get().then(
+                              (snapshot) {
+                                var data = HashMap.of({
+                                  'name': name,
+                                  'pushID': snapshot.data['notificationID'],
+                                  'imageUrl': user.photoUrl,
+                                });
+                                HttpsCallable sayThanks = CloudFunctions().getHttpsCallable(functionName: 'sayThanks');
+                                sayThanks.call(data);
+                              }
+                          );
                         },
                         child: Text(
                           'Say Thanks!',

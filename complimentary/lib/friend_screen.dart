@@ -15,6 +15,7 @@ class FriendScreen extends StatelessWidget {
         length: 2,
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor: themeColor,
             title: Text('Friends'),
             automaticallyImplyLeading: true,
             leading: IconButton(
