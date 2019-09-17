@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:complimentary/home_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:video_player/video_player.dart';
 
 class LoginPage extends StatefulWidget {
@@ -39,14 +41,57 @@ class _LoginPageState extends State<LoginPage> {
     return OutlineButton(
       splashColor: Colors.grey,
       onPressed: () {
-        signInWithGoogle().whenComplete(() {
-          Navigator.of(context).push(
-            MaterialPageRoute(
+        signInWithGoogle().then((result) {
+          if(result) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) {
+                  return HomeScreen();
+                },
+              ),
+            );
+          }
+          else {
+            showDialog(context: context,
+              barrierDismissible: false,
               builder: (context) {
-                return HomeScreen();
-              },
-            ),
-          );
+                String username = "";
+                return AlertDialog(
+                  title: Text('Set your Username'),
+                  content: TextField(
+                    onChanged: (value) { username = value; },
+                    decoration: InputDecoration.collapsed(hintText: 'Username'),
+                  ),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text('Submit'),
+                      onPressed: () {
+                        Firestore.instance.collection('users').where('name', isEqualTo: username).getDocuments().then((docData) {
+                          if(docData.documents.length == 0) {
+                            Firestore.instance.collection('users').document(user.uid).updateData({'name' : username});
+                            Navigator.pop(context, true);
+                          }
+                          else {
+                            Fluttertoast.showToast(msg: 'That username is taken.');
+                          }
+                        });
+                      },
+                    )
+                  ],
+                );
+              }
+            ).then((after) {
+              if(after) {
+                Navigator.push(context,
+                    MaterialPageRoute(
+                        builder: (context) {
+                          return HomeScreen();
+                        }
+                    )
+                );
+              }
+            });
+          }
         });
       },
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),

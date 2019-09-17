@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:complimentary/const.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:complimentary/sign_in.dart' as prefix0;
 import 'package:complimentary/user_info_screen.dart';
@@ -16,6 +17,7 @@ class JournalScreenState extends State<JournalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: themeColor,
         title: Text('Your Journal'),
         automaticallyImplyLeading: true,
         leading: IconButton(

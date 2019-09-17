@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
@@ -16,6 +17,7 @@ import 'package:complimentary/settings_screen.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:complimentary/your_journal_screen.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
@@ -28,7 +30,6 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Stream",
-      theme: ThemeData(primaryColor: Colors.blue),
       home: MyStream(),
     );
   }
@@ -42,15 +43,32 @@ class MyStream extends StatefulWidget {
 class MyStreamState extends State<MyStream> {
   FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   @override
+  void dispose() {
+    super.dispose();
+  }
+  @override
   void initState() {
     super.initState();
+    String _appId = Platform.isAndroid?
+    'ca-app-pub-2874072397905886~7278065504' :
+    'ca-app-pub-2874072397905886~5583810079';
+    FirebaseAdMob.instance.initialize(appId: _appId);
+    String _bannerId = Platform.isAndroid?
+    //'ca-app-pub-2874072397905886/9050312172': //Real Code
+    'ca-app-pub-3940256099942544/6300978111': //Test Code
+    //'ca-app-pub-2874072397905886/8018401729';
+    'ca-app-pub-3940256099942544/2934735716';
+
+    (BannerAd(adUnitId: _bannerId, size: AdSize.smartBanner, listener: (MobileAdEvent event) { print(event); }, targetingInfo: MobileAdTargetingInfo(
+      testDevices: ["D8D7CAB943144EB96CB7D5B0AADBEFA7"], keywords: ['happy']
+    )))
+      ..load()..show(anchorType: AnchorType.bottom, anchorOffset: 10.0);
     firebaseCloudMessaging_Listeners();
   }
 
   void firebaseCloudMessaging_Listeners() {
     if (Platform.isIOS) iOS_Permission();
     _firebaseMessaging.getToken().then((token) {
-      print(token);
       Firestore.instance
           .collection('users')
           .document(user.uid)
@@ -74,14 +92,37 @@ class MyStreamState extends State<MyStream> {
       print('Settings Registered: $settings');
     });
   }
-
   @override
   Widget build(BuildContext context) {
+    if(Const.affirmations) Future.delayed(Duration(seconds: 1), () {
+      showDialog(context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('A thought:'),
+            content: StreamBuilder<DocumentSnapshot>(
+                  stream: Firestore.instance.collection('prompts').document('affirmations').get().asStream(),
+                  builder: (context, snapshot) {
+                    if(!snapshot.hasData) return CircularProgressIndicator();
+                    return Text(
+                      ((List.castFrom(snapshot.data.data['affirmationList']??List()))..shuffle()).first??'',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    );
+                  },
+                ),
+              );
+        },
+      );
+    });
     return RefreshIndicator(
       onRefresh: refresh,
       child: Scaffold(
         drawer: _makeDrawer(),
         appBar: AppBar(
+          backgroundColor: Const.themeColor,
           title: Text('Your Stream'),
           actions: <Widget>[
             IconButton(
@@ -95,18 +136,18 @@ class MyStreamState extends State<MyStream> {
                   },
                 );
               },
-            )
+            ),
+            IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                  return NewComplimentScreen();
+                }));
+              },
+            ),
           ],
         ),
         body: _buildStream(),
-        floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.add),
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                return NewComplimentScreen();
-              }));
-            },
-        ),
       ),
     );
   }
@@ -139,7 +180,7 @@ class MyStreamState extends State<MyStream> {
   Widget _buildListFromStream(QuerySnapshot snapshot) {
     if (snapshot.documents.length == 0) {
       return Center(
-          child: ListTile(
+          child: ListView( padding: EdgeInsets.all(32.0) ,children: [ListTile(
         title: Text(
           'No new compliments right now...\nTry Complimenting Yourself!',
           textAlign: TextAlign.center,
@@ -152,13 +193,16 @@ class MyStreamState extends State<MyStream> {
             );
           }));
         },
-      ));
+      )]));
     }
     return ListView.builder(
-      itemCount: snapshot.documents.length * 2,
+      itemCount: snapshot.documents.length * 2 + 1,
       itemBuilder: (context, i) {
+        if(i~/2 > snapshot.documents.length - 1) {
+          return ListTile();
+        }
         if (i.isOdd) {
-          return Divider(height: 2);
+          return Divider(height: 2, color: Colors.transparent,);
         } else {
           final index = i ~/ 2;
           return Dismissible(
@@ -198,6 +242,68 @@ class MyStreamState extends State<MyStream> {
             onTap: () {
               print('Card tapped.');
             },
+            onLongPress: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text('Report Compliment',),
+                    content: Container(
+                      width: double.maxFinite,
+                      child: ListView(
+                        children: <Widget>[
+                          ListTile(
+                            title: Text('Choose a reason:', style: TextStyle( fontWeight: FontWeight.bold,),),
+                          ),
+                          Divider(),
+                          ListTile(
+                            title: Text("It's insulting"),
+                            onTap: () {
+                              Fluttertoast.showToast(msg: "We're sorry to hear about this!");
+                            },
+                          ),
+                          Divider(),
+                          ListTile(
+                            title: Text("It's threatening"),
+                            onTap: () {
+                              Fluttertoast.showToast(msg: "We're sorry to hear about this!");
+                            },
+                          ),
+                          Divider(),
+                          ListTile(
+                            title: Text("It's inappropriate"),
+                            onTap: () {
+                              Fluttertoast.showToast(msg: "We're sorry to hear about this!");
+                            },
+                          ),
+                          Divider(),
+                          ListTile(
+                            title: Text("It's attacking"),
+                            onTap: () {
+                              Fluttertoast.showToast(msg: "We're sorry to hear about this!");
+                            },
+                          )
+                        ],
+                      ),
+                    ),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('Done',),
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                      ),
+                      FlatButton(
+                        child: Text('Cancel',),
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                      )
+                    ],
+                  );
+                }
+              );
+            },
             child: Container(
                 margin: EdgeInsets.all(16.0),
                 width: 300,
@@ -218,7 +324,7 @@ class MyStreamState extends State<MyStream> {
                     Padding(padding: EdgeInsets.all(8.0)),
                     Text(
                       userName,
-                      style: TextStyle(fontSize: min(240/userName.length, 24)),
+                      style: TextStyle(fontSize: min(240/userName.length, 24),),
                     ),
                     Spacer(),
                     GestureDetector(
@@ -245,7 +351,7 @@ class MyStreamState extends State<MyStream> {
                   ListTile(
                     title: Text(
                       message,
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 18,),
                     ),
                     trailing: IconButton(
                       icon: Icon((!(snap.data['isInJournal'] ?? false))
@@ -449,7 +555,7 @@ class MyStreamState extends State<MyStream> {
     return AlertDialog(
       actions: <Widget>[
         FlatButton(
-          child: Text('See more'),
+          child: Text('See more',),
           onPressed: () async {
             Navigator.of(context).pop();
             Navigator.of(context).push(
@@ -462,7 +568,7 @@ class MyStreamState extends State<MyStream> {
           }
         )
       ],
-        title: Text('Ideas'),
+        title: Text('Ideas',),
         content: Container(
           width: double.maxFinite,
           child: ListView(
@@ -471,7 +577,7 @@ class MyStreamState extends State<MyStream> {
               StreamBuilder<DocumentSnapshot>(
                 stream: Firestore.instance.collection('users').document(user.uid).get().asStream(),
                 builder: (context, userData) {
-                  if(userData.hasData) {
+                  if(userData.hasData && List.castFrom(userData.data.data['friends']).isNotEmpty) {
                     List friends = userData.data.data['friends'];
                     friends.shuffle();
                     DocumentReference chosenFriend = friends.first;
@@ -515,7 +621,7 @@ class MyStreamState extends State<MyStream> {
                         Icons.arrow_forward,
                         color: Const.themeColor,
                       ),
-                      title: Text(prompt),
+                      title: Text(prompt,),
                       onTap: () {
                         showDialog(context: context,
                           builder: (context) {
@@ -576,7 +682,7 @@ class MyStreamState extends State<MyStream> {
                         Icons.arrow_forward,
                         color: Const.themeColor,
                       ),
-                      title: Text(prompt),
+                      title: Text(prompt,),
                       onTap: () {
                         showDialog(
                             context: context,

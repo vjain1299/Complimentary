@@ -8,7 +8,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="complimentary"
+        android:label="Complimentary"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -33,5 +33,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-2874072397905886~7278065504"/>
     </application>
 </manifest>

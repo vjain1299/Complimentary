@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:complimentary/const.dart';
 import 'package:complimentary/friend_screen.dart';
 import 'package:complimentary/friend_selector.dart';
 import 'package:complimentary/sign_in.dart';
@@ -48,6 +49,7 @@ class NewComplimentState extends State<NewComplimentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: themeColor,
             title: Text('New Compliment'),
             automaticallyImplyLeading: true,
             leading: IconButton(
@@ -80,7 +82,7 @@ class NewComplimentState extends State<NewComplimentScreen> {
                         child: FutureBuilder<HttpsCallableResult>(
                             future: readComment.call(data),
                             builder: (context, snapshot) {
-                              if(!snapshot.hasData) return CircularProgressIndicator();
+                              if(!snapshot.hasData) return LinearProgressIndicator();
                               Map result = snapshot.data.data;
                               var problems = [];
                               for(int index = 0; index < result.length; index++) {

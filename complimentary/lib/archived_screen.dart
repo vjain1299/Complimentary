@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:complimentary/const.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,7 +13,9 @@ class ArchivedScreen extends StatefulWidget {
 class ArchivedScreenState extends State<ArchivedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Archived Compliments')
+      appBar: AppBar(
+          title: Text('Archived Compliments'),
+        backgroundColor: themeColor,
         //Add in side menu here
       ),
       body: _buildStream(),
@@ -43,7 +46,7 @@ class ArchivedScreenState extends State<ArchivedScreen> {
       itemCount: snapshot.documents.length * 2,
       itemBuilder: (context, i) {
         if (i.isOdd) {
-          return Divider(height: 2);
+          return Divider(height: 2, color: Colors.transparent,);
         } else {
           final index = i ~/ 2;
           return Dismissible(
@@ -72,11 +75,10 @@ class ArchivedScreenState extends State<ArchivedScreen> {
     final imageUrl = mappedData['imageUrl'];
     final name = mappedData['name'];
     return Card(
-        color: Colors.white,
         //clipBehavior: Clip.none,
         elevation: 5,
         child: InkWell(
-            splashColor: Colors.green.withAlpha(30),
+            splashColor: themeColor.withAlpha(30),
             onTap: () {
               print('Card tapped.');
             },
@@ -112,7 +114,7 @@ class ArchivedScreenState extends State<ArchivedScreen> {
                     IconButton(
                       icon: Icon(
                         Icons.delete_forever,
-                        color: Colors.blue,
+                        color: Colors.red,
                       ),
                       onPressed: () {
                         showDialog(

@@ -1,5 +1,9 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:complimentary/bulid_users_screen.dart';
+import 'package:complimentary/const.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -21,6 +25,7 @@ class FriendRequestsState extends State<StatefulWidget> {
         .asStream();
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: themeColor,
           title: Text('Friend Requests'),
           automaticallyImplyLeading: true,
           leading: IconButton(
@@ -64,6 +69,7 @@ class FriendRequestsState extends State<StatefulWidget> {
           if (userDoc.hasData) {
             return ListTile(
                 title: Text(userDoc.data['name']),
+                subtitle: Text(userDoc.data['realName']??''),
                 leading: CircleAvatar(
                   backgroundColor: Colors.transparent,
                   backgroundImage: NetworkImage(userDoc.data['imageUrl']),
@@ -99,6 +105,9 @@ class FriendRequestsState extends State<StatefulWidget> {
                               .collection('users')
                               .document(user.uid)
                               .setData({'friends': friends}, merge: true);
+                          HttpsCallable requestAccepted =  CloudFunctions.instance.getHttpsCallable(functionName: 'requestAccepted');
+                          var data = HashMap.of({'name' : name, 'imageUrl' : user.photoUrl, 'pushID' : userDoc.data['notificationID']});
+                          requestAccepted.call(data);
                           setState(() {
                           });
                         }),
@@ -119,7 +128,7 @@ class FriendRequestsState extends State<StatefulWidget> {
                   ]),
                 ));
           } else {
-            return LinearProgressIndicator();
+            return Divider(height: 0, color: Colors.transparent,);
           }
         });
   }

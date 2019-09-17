@@ -87,6 +87,7 @@ class FriendPageState extends State<FriendPage> with AutomaticKeepAliveClientMix
         if (userDoc.hasData) {
           return ListTile(
             title: Text(userDoc.data['name']??'Error'),
+            subtitle: Text(userDoc.data['realName']??''),
             leading: userDoc.data == null? null : CircleAvatar(
               backgroundColor: Colors.transparent,
               backgroundImage: NetworkImage(userDoc.data['imageUrl']),
@@ -116,7 +117,7 @@ class FriendPageState extends State<FriendPage> with AutomaticKeepAliveClientMix
             ),
           );
         } else {
-          return Divider(color: Colors.white,);
+          return Divider(color: Colors.transparent, height: 0,);
         }
       },
     );

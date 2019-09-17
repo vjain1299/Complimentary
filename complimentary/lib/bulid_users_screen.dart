@@ -1,4 +1,7 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -73,35 +76,57 @@ class UserListState extends State<UserListBuilder> {
         }
         if(i.isEven) return Divider();
         int index = (i-1)~/2 - 1;
-        return _buildRow(snapshot.documents[index], context);
+        return UserTileBuilder(snapshot.documents[index]);
       },
     );
   }
-  Widget _buildRow(DocumentSnapshot userDoc, BuildContext context) {
-    List requests = userDoc.data['requests']??List();
-    List friends = userDoc.data['friends']??List();
+}
+class UserTileBuilder extends StatefulWidget {
+  UserTileBuilder(this.snapshot);
+  final DocumentSnapshot snapshot;
+  @override
+  State<StatefulWidget> createState() => UserTileState(snapshot);
+}
+class UserTileState extends State<UserTileBuilder> {
+  UserTileState(this.userDoc);
+  final DocumentSnapshot userDoc;
+  bool isRequested;
+  List requests;
+  List friends;
+  @override
+  void initState() {
+    requests = userDoc.data['requests']??List();
+    friends = userDoc.data['friends']??List();
     var userRef = Firestore.instance.collection('users').document(user.uid);
-    bool isAlreadyRequested = requests.contains(userRef) || friends.contains(userRef);
+    isRequested = requests.contains(userRef) || friends.contains(userRef);
+    super.initState();
+  }
+  @override
+  Widget build(BuildContext context) {
     return ListTile(
       title: Text(userDoc.data['name']),
+      subtitle: Text(userDoc.data['realName']??''),
       leading: CircleAvatar(
         backgroundColor: Colors.transparent,
         backgroundImage: NetworkImage(userDoc.data['imageUrl']),
         radius: 20,
       ),
-      trailing: isAlreadyRequested? Icon(Icons.check, color: Colors.green,) :
+      trailing: isRequested? Icon(Icons.check, color: Colors.green,) :
       IconButton(
         icon: Icon(
           Icons.add,
           color: Colors.blue,
         ),
         onPressed: () {
+          HttpsCallable newRequest = CloudFunctions.instance.getHttpsCallable(functionName: 'newRequest');
+          var data = HashMap.of({'name' : name, 'pushID' : userDoc.data['notificationID'], 'imageUrl' : user.photoUrl});
+          newRequest.call(data);
           var newData = [];
           newData.addAll(requests);
           newData.add(Firestore.instance.collection('users').document(user.uid));
           userDoc.reference.setData({'requests': newData}, merge: true);
           setState(() {
-            isAlreadyRequested = true;
+            isRequested = true;
           });
         },
       ),
