@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:admob_flutter/admob_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_functions/cloud_functions.dart' as prefix0;
@@ -17,7 +18,6 @@ import 'package:complimentary/settings_screen.dart';
 import 'package:complimentary/user_info_screen.dart';
 import 'package:complimentary/sign_in.dart';
 import 'package:complimentary/your_journal_screen.dart';
-import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
@@ -42,27 +42,21 @@ class MyStream extends StatefulWidget {
 
 class MyStreamState extends State<MyStream> {
   FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  String _bannerId = Platform.isAndroid?
+  //'ca-app-pub-2874072397905886/9050312172': //Real Code
+  'ca-app-pub-3940256099942544/6300978111': //Test Code
+  //'ca-app-pub-2874072397905886/8018401729';
+  'ca-app-pub-3940256099942544/2934735716';
+  bool affirmed = false;
   @override
   void dispose() {
+
     super.dispose();
   }
   @override
   void initState() {
     super.initState();
-    String _appId = Platform.isAndroid?
-    'ca-app-pub-2874072397905886~7278065504' :
-    'ca-app-pub-2874072397905886~5583810079';
-    FirebaseAdMob.instance.initialize(appId: _appId);
-    String _bannerId = Platform.isAndroid?
-    //'ca-app-pub-2874072397905886/9050312172': //Real Code
-    'ca-app-pub-3940256099942544/6300978111': //Test Code
-    //'ca-app-pub-2874072397905886/8018401729';
-    'ca-app-pub-3940256099942544/2934735716';
-
-    (BannerAd(adUnitId: _bannerId, size: AdSize.smartBanner, listener: (MobileAdEvent event) { print(event); }, targetingInfo: MobileAdTargetingInfo(
-      testDevices: ["D8D7CAB943144EB96CB7D5B0AADBEFA7"], keywords: ['happy']
-    )))
-      ..load()..show(anchorType: AnchorType.bottom, anchorOffset: 10.0);
+    affirmed = false;
     firebaseCloudMessaging_Listeners();
   }
 
@@ -94,7 +88,8 @@ class MyStreamState extends State<MyStream> {
   }
   @override
   Widget build(BuildContext context) {
-    if(Const.affirmations) Future.delayed(Duration(seconds: 1), () {
+    if(Const.affirmations && !affirmed) Future.delayed(Duration(seconds: 1), () {
+      affirmed = true;
       showDialog(context: context,
         builder: (context) {
           return AlertDialog(
@@ -122,6 +117,14 @@ class MyStreamState extends State<MyStream> {
       child: Scaffold(
         drawer: _makeDrawer(),
         appBar: AppBar(
+          bottom: PreferredSize(child: AdmobBanner(
+            adSize: AdmobBannerSize.BANNER,
+            adUnitId: _bannerId,
+            listener: (AdmobAdEvent event, Map<String, dynamic> args) {
+              print(event);
+            },
+          ),
+          preferredSize: Size(AdmobBannerSize.BANNER.width.toDouble(), AdmobBannerSize.BANNER.height.toDouble()),),
           backgroundColor: Const.themeColor,
           title: Text('Your Stream'),
           actions: <Widget>[
@@ -137,15 +140,16 @@ class MyStreamState extends State<MyStream> {
                 );
               },
             ),
-            IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                  return NewComplimentScreen();
-                }));
-              },
-            ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Const.themeColor.withAlpha(255),
+          child: Icon(Icons.add),
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+              return NewComplimentScreen();
+            }));
+          },
         ),
         body: _buildStream(),
       ),
@@ -180,7 +184,7 @@ class MyStreamState extends State<MyStream> {
   Widget _buildListFromStream(QuerySnapshot snapshot) {
     if (snapshot.documents.length == 0) {
       return Center(
-          child: ListView( padding: EdgeInsets.all(32.0) ,children: [ListTile(
+          child: SingleChildScrollView( padding: EdgeInsets.all(32.0) ,child: ListTile(
         title: Text(
           'No new compliments right now...\nTry Complimenting Yourself!',
           textAlign: TextAlign.center,
@@ -192,8 +196,9 @@ class MyStreamState extends State<MyStream> {
               docRef: Firestore.instance.collection('users').document(user.uid),
             );
           }));
-        },
-      )]));
+            },
+            ),
+          ));
     }
     return ListView.builder(
       itemCount: snapshot.documents.length * 2 + 1,
@@ -715,6 +720,44 @@ class MyStreamState extends State<MyStream> {
                                   FlatButton(
                                     child: Text('Choose Recipient'),
                                     onPressed: () async {
+                                      var data = HashMap.of({'comment': prompt + " " + temp});
+                                      HttpsCallable readComment = CloudFunctions.instance.getHttpsCallable(functionName: 'readComment');
+                                      showDialog<bool>(context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                                content: Container(
+                                                  width: double.maxFinite,
+                                                  child: FutureBuilder<HttpsCallableResult>(
+                                                      future: readComment.call(data),
+                                                      builder: (context, snapshot) {
+                                                        if(!snapshot.hasData) return LinearProgressIndicator();
+                                                        Map result = snapshot.data.data;
+                                                        var problems = [];
+                                                        for(int index = 0; index < result.length; index++) {
+                                                          if(result.values.toList()[index]['spanScores'][0]['score']['value'] > 0.70) {
+                                                            problems.add(result.keys.toList()[index]);
+                                                          }
+                                                        }
+                                                        if(problems.length > 0) {
+                                                          return ListView.builder(
+                                                            shrinkWrap: true,
+                                                            itemCount: problems.length,
+                                                            itemBuilder: (context, i) {
+                                                              return ListTile(
+                                                                title: Text('Your comment has been flagged for ${problems[i]}.'),
+                                                                subtitle: Text(['The compliment was not sent.',"Please consider what you're saying",'If you have nothing nice to say...', "Don't say anything at all", "Maybe you should reflect on what you said...", "Better luck next time"][i]),
+                                                              );
+                                                            },
+                                                          );
+                                                        }
+                                                          Navigator.of(context).pop(true);
+                                                          return Text('Your compliment is being sent...');
+                                                      }
+                                                  ),
+                                                )
+                                            );
+                                          }
+                                      ).then((isOk) { if(!(isOk??false)) return;});
                                       DocumentSnapshot snap = await Navigator.of(context).push(
                                           MaterialPageRoute(
                                               builder: (context) {

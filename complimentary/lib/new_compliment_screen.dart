@@ -122,7 +122,7 @@ class NewComplimentState extends State<NewComplimentScreen> {
               );
               Navigator.pop(context, false);
             },
-            backgroundColor: Colors.blue,
+            backgroundColor: themeColor.withAlpha(255),
             child: Icon(
               Icons.check,
               size: 20,
